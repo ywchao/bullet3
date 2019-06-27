@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<robot name="sphere">
+  <material name="red">
+    <color rgba="1 0 0 1"/>
+  </material>
+  <link name="sphere">
+    <visual>
+      <geometry>
+        <sphere radius="0.005"/>
+      </geometry>
+       <material name="red"/>
+    </visual>
+  </link>
+</robot>

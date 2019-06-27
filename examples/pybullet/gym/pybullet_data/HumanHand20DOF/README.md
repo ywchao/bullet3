@@ -1,0 +1,1 @@
+[HumanHand20DOF.urdf](HumanHand20DOF.urdf) is modified from [GraspIt2URDF](https://github.com/samarth-robo/GraspIt2URDF) created by [Samarth Brahmbhatt](https://github.com/samarth-robo).
