@@ -94,6 +94,7 @@ class HumanHand20DOFBulletEnvPlay(HumanHand20DOFBulletEnv):
     if not self.spheres:
       for i in range(5):
         self.spheres.append(self.truth._p.loadURDF(os.path.join(pybullet_data.getDataPath(), 'HumanHand20DOF/sphere.urdf')))
+        self.truth._p.changeDynamics(self.spheres[i], -1, mass=0.0)
         self.truth._p.changeVisualShape(self.spheres[i], -1, rgbaColor=[1, 0, 0, 1])
 
     return r
