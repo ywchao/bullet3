@@ -13,6 +13,7 @@ class HandTrackerBulletEnv(MJCFBaseBulletEnv):
 
   def __init__(self, robot, render=False):
     MJCFBaseBulletEnv.__init__(self, robot, render)
+    self.error = None
 
   def create_single_player_scene(self, bullet_client):
     return SinglePlayerStadiumScene(bullet_client,
@@ -45,6 +46,8 @@ class HandTrackerBulletEnv(MJCFBaseBulletEnv):
     r_jpos = np.exp(-10.0000 * np.sum((curr_jpos - real_jpos)**2))
 
     self.rewards = [0.8333 * r_prog, 0.1667 * r_jpos]
+
+    self.error = np.mean(-curr_pot * self.scene.dt) * 1000
 
     done = False
     if not np.isfinite(state).all():
