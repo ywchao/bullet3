@@ -35,7 +35,7 @@ class HandTrackerBase(URDFBasedRobot):
     return np.concatenate([curr_jpos] + [next_jpos])
 
 
-class HumanHand20DOF(HandTrackerBase):
+class HumanHand20DOFFixedBaseMSRAP05(HandTrackerBase):
 
   def __init__(self):
     HandTrackerBase.__init__(self, 'HumanHand20DOF/HumanHand20DOF.urdf', 'base_link', action_dim=20, obs_dim=60, power=None)
@@ -78,10 +78,10 @@ class HumanHand20DOF(HandTrackerBase):
       j.set_position(next_jpos[n])
 
 
-class HumanHand20DOFPlay(HumanHand20DOF):
+class HumanHand20DOFFixedBaseMSRAP05Play(HumanHand20DOFFixedBaseMSRAP05):
 
   def robot_specific_reset(self, bullet_client):
-    HumanHand20DOF.robot_specific_reset(self, bullet_client)
+    HumanHand20DOFFixedBaseMSRAP05.robot_specific_reset(self, bullet_client)
 
     self.frame = 0
     self.reset_joint_position(self.qpos[self.frame])

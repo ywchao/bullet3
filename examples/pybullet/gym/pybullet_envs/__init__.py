@@ -212,14 +212,14 @@ register(id='HumanoidFlagrunHarderBulletEnv-v0',
 #	)
 
 register(
-    id='HumanHand20DOFBulletEnv-v0',
-    entry_point='pybullet_envs.gym_hand_tracking_envs:HumanHand20DOFBulletEnv',
+    id='HumanHand20DOFFixedBaseMSRAP05BulletEnv-v0',
+    entry_point='pybullet_envs.gym_hand_tracking_envs:HumanHand20DOFFixedBaseMSRAP05BulletEnv',
     max_episode_steps=1000,
 )
 
 register(
-    id='HumanHand20DOFBulletEnvPlay-v0',
-    entry_point='pybullet_envs.gym_hand_tracking_envs:HumanHand20DOFBulletEnvPlay',
+    id='HumanHand20DOFFixedBaseMSRAP05BulletEnvPlay-v0',
+    entry_point='pybullet_envs.gym_hand_tracking_envs:HumanHand20DOFFixedBaseMSRAP05BulletEnvPlay',
     max_episode_steps=1000,
 )
 

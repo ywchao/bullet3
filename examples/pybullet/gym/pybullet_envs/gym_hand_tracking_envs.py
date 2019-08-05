@@ -6,7 +6,7 @@ import pybullet_data
 
 from pybullet_envs.env_bases import MJCFBaseBulletEnv
 from pybullet_envs.scene_stadium import SinglePlayerStadiumScene
-from pybullet_envs.hand_trackers import HumanHand20DOF, HumanHand20DOFPlay
+from pybullet_envs.hand_trackers import HumanHand20DOFFixedBaseMSRAP05, HumanHand20DOFFixedBaseMSRAP05Play
 
 
 class HandTrackerBulletEnv(MJCFBaseBulletEnv):
@@ -67,21 +67,21 @@ class HandTrackerBulletEnv(MJCFBaseBulletEnv):
     return -dist / self.scene.dt
 
 
-class HumanHand20DOFBulletEnv(HandTrackerBulletEnv):
+class HumanHand20DOFFixedBaseMSRAP05BulletEnv(HandTrackerBulletEnv):
 
-  def __init__(self, robot=HumanHand20DOF(), render=False):
+  def __init__(self, robot=HumanHand20DOFFixedBaseMSRAP05(), render=False):
     HandTrackerBulletEnv.__init__(self, robot, render)
 
 
-class HumanHand20DOFBulletEnvPlay(HumanHand20DOFBulletEnv):
+class HumanHand20DOFFixedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFixedBaseMSRAP05BulletEnv):
 
-  def __init__(self, robot=HumanHand20DOFPlay(), truth=HumanHand20DOF(), render=False):
-    HumanHand20DOFBulletEnv.__init__(self, robot, render)
+  def __init__(self, robot=HumanHand20DOFFixedBaseMSRAP05Play(), truth=HumanHand20DOFFixedBaseMSRAP05(), render=False):
+    HumanHand20DOFFixedBaseMSRAP05BulletEnv.__init__(self, robot, render)
     self.truth = truth
     self.spheres = []
 
   def reset(self):
-    r = HumanHand20DOFBulletEnv.reset(self)
+    r = HumanHand20DOFFixedBaseMSRAP05BulletEnv.reset(self)
 
     self.truth.np_random = self.np_random
     self.truth.reset(self._p)
@@ -103,7 +103,7 @@ class HumanHand20DOFBulletEnvPlay(HumanHand20DOFBulletEnv):
     return r
 
   def step(self, a):
-    state, reward, done, info = HumanHand20DOFBulletEnv.step(self, a)
+    state, reward, done, info = HumanHand20DOFFixedBaseMSRAP05BulletEnv.step(self, a)
 
     self.truth.reset_joint_position(self.robot.qpos[self.robot.frame])
 
