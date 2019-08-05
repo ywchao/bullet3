@@ -1,7 +1,6 @@
 import numpy as np
 import os
 
-import pybullet
 import pybullet_data
 
 from pybullet_envs.env_bases import MJCFBaseBulletEnv
@@ -22,14 +21,10 @@ class HandTrackerBulletEnv(MJCFBaseBulletEnv):
                                     frame_skip=4)
 
   def reset(self):
-    self.prev_jpos = None
     return MJCFBaseBulletEnv.reset(self)
 
   def step(self, a):
-    if self.prev_jpos is None:
-      self.prev_jpos = np.array([j.get_position() for j in self.robot.ordered_joints], dtype=np.float32)
-
-    prev_pot = self.calc_potential(self.robot.frame + 1)
+    self.pre_step()
 
     self.robot.apply_action(a)
     self.scene.global_step()
@@ -38,33 +33,35 @@ class HandTrackerBulletEnv(MJCFBaseBulletEnv):
     self.robot.frame += 1
     state = self.robot.calc_state()
 
-    curr_pot = self.calc_potential(self.robot.frame)
-    r_prog = np.mean(curr_pot - prev_pot)
+    self.post_step()
 
-    curr_jpos = np.array([j.get_position() for j in self.robot.ordered_joints], dtype=np.float32)
-    real_jpos = self.robot.qpos[self.robot.frame][0:len(self.robot.ordered_joints) * 2:2]
-    r_jpos = np.exp(-10.0000 * np.sum((curr_jpos - real_jpos)**2))
+    self.rewards = self.calc_rewards()
 
-    self.rewards = [0.8333 * r_prog, 0.1667 * r_jpos]
+    self.error = self.calc_error()
 
-    self.error = np.mean(-curr_pot * self.scene.dt) * 1000
-
-    done = False
+    done = not self.is_alive()
     if not np.isfinite(state).all():
       print("~INF~", state)
       done = True
-    # Termination due to training data: only enforced in training.
     if self.robot.frame == len(self.robot.qpos) - 2:
       done = True
 
-    self.prev_jpos = curr_jpos
-
     return state, sum(self.rewards), bool(done), {}
 
-  def calc_potential(self, frame):
-    kpts = np.vstack([self.robot.parts[k].get_position() for k in ('index3', 'mid3', 'ring3', 'pinky3', 'thumb3')])
-    dist = np.linalg.norm(kpts - self.robot.kpts[frame], axis=1)
-    return -dist / self.scene.dt
+  def pre_step(self):
+    pass
+
+  def post_step(self):
+    pass
+
+  def calc_rewards(self):
+    raise NotImplementedError
+
+  def calc_error(self):
+    raise NotImplementedError
+
+  def is_alive(self):
+    raise NotImplementedError
 
 
 class HumanHand20DOFFixedBaseMSRAP05BulletEnv(HandTrackerBulletEnv):
@@ -72,10 +69,41 @@ class HumanHand20DOFFixedBaseMSRAP05BulletEnv(HandTrackerBulletEnv):
   def __init__(self, robot=HumanHand20DOFFixedBaseMSRAP05(), render=False):
     HandTrackerBulletEnv.__init__(self, robot, render)
 
+  def pre_step(self):
+    dist = self.calc_dist(self.robot.frame + 1)
+    self.prev_pot = -dist / self.scene.dt
+
+  def post_step(self):
+    dist = self.calc_dist(self.robot.frame)
+    self.curr_pot = -dist / self.scene.dt
+    self.dist = dist
+
+  def calc_rewards(self):
+    r_prog = np.mean(self.curr_pot - self.prev_pot)
+
+    curr_jpos = np.array([j.get_position() for j in self.robot.ordered_joints], dtype=np.float32)
+    real_jpos = self.robot.qpos[self.robot.frame][0:len(self.robot.ordered_joints) * 2:2]
+    r_jpos = np.exp(-10.0000 * np.sum((curr_jpos - real_jpos)**2))
+
+    return [0.8333 * r_prog, 0.1667 * r_jpos]
+
+  def calc_error(self):
+    return np.mean(self.dist) * 1000
+
+  def is_alive(self):
+    return True
+
+  def calc_dist(self, frame):
+    kpts = np.vstack([self.robot.parts[k].get_position() for k in self.robot.kpts_names])
+    return np.linalg.norm(kpts - self.robot.kpts[frame], axis=1)
+
 
 class HumanHand20DOFFixedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFixedBaseMSRAP05BulletEnv):
 
-  def __init__(self, robot=HumanHand20DOFFixedBaseMSRAP05Play(), truth=HumanHand20DOFFixedBaseMSRAP05(), render=False):
+  def __init__(self,
+               robot=HumanHand20DOFFixedBaseMSRAP05Play(),
+               truth=HumanHand20DOFFixedBaseMSRAP05Play(),
+               render=False):
     HumanHand20DOFFixedBaseMSRAP05BulletEnv.__init__(self, robot, render)
     self.truth = truth
     self.spheres = []
@@ -83,20 +111,20 @@ class HumanHand20DOFFixedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFixedBaseMSRAP05
   def reset(self):
     r = HumanHand20DOFFixedBaseMSRAP05BulletEnv.reset(self)
 
+    truth_loaded = self.truth.loaded
     self.truth.np_random = self.np_random
     self.truth.reset(self._p)
 
-    body_id = self.truth.robot_body.bodies[0]
-    for j in range(-1, self.truth._p.getNumJoints(body_id)):
-      self._p.setCollisionFilterGroupMask(body_id, j, collisionFilterGroup=0, collisionFilterMask=0)
-    for j in range(-1, self.truth._p.getNumJoints(body_id)):
-      self._p.changeVisualShape(body_id, j, rgbaColor=[0.7, 0.7, 0.7, 0.4])
-
-    self.truth.reset_joint_position(self.robot.qpos[self.robot.frame])
+    if not truth_loaded:
+      body_id = self.truth.robot_body.bodies[self.truth.robot_body.bodyIndex]
+      for j in range(-1, self.truth._p.getNumJoints(body_id)):
+        self._p.setCollisionFilterGroupMask(body_id, j, collisionFilterGroup=0, collisionFilterMask=0)
+        self._p.changeVisualShape(body_id, j, rgbaColor=[0.7, 0.7, 0.7, 0.4])
 
     if not self.spheres:
       for i in range(5):
-        self.spheres.append(self.truth._p.loadURDF(os.path.join(pybullet_data.getDataPath(), 'HumanHand20DOF/sphere.urdf')))
+        self.spheres.append(
+            self.truth._p.loadURDF(os.path.join(pybullet_data.getDataPath(), 'HumanHand20DOF/sphere.urdf')))
         self.truth._p.changeDynamics(self.spheres[i], -1, mass=0.0)
         self.truth._p.changeVisualShape(self.spheres[i], -1, rgbaColor=[1, 0, 0, 1])
 
@@ -107,7 +135,10 @@ class HumanHand20DOFFixedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFixedBaseMSRAP05
 
     self.truth.reset_joint_position(self.robot.qpos[self.robot.frame])
 
-    for j, d in enumerate(('index3', 'mid3', 'ring3', 'pinky3', 'thumb3')):
+    for j, d in enumerate(self.robot.kpts_names):
       self._p.resetBasePositionAndOrientation(self.spheres[j], self.robot.kpts[self.robot.frame][j], [0, 0, 0, 1])
 
     return state, reward, done, info
+
+  def is_alive(self):
+    return True
