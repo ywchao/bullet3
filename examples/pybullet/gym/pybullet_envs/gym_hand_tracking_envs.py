@@ -117,16 +117,16 @@ class HumanHand20DOFFixedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFixedBaseMSRAP05
 
     if not truth_loaded:
       body_id = self.truth.robot_body.bodies[self.truth.robot_body.bodyIndex]
-      for j in range(-1, self.truth._p.getNumJoints(body_id)):
+      for j in range(-1, self._p.getNumJoints(body_id)):
         self._p.setCollisionFilterGroupMask(body_id, j, collisionFilterGroup=0, collisionFilterMask=0)
         self._p.changeVisualShape(body_id, j, rgbaColor=[0.7, 0.7, 0.7, 0.4])
 
     if not self.spheres:
       for i in range(5):
         self.spheres.append(
-            self.truth._p.loadURDF(os.path.join(pybullet_data.getDataPath(), 'HumanHand20DOF/sphere.urdf')))
-        self.truth._p.changeDynamics(self.spheres[i], -1, mass=0.0)
-        self.truth._p.changeVisualShape(self.spheres[i], -1, rgbaColor=[1, 0, 0, 1])
+            self._p.loadURDF(os.path.join(pybullet_data.getDataPath(), 'HumanHand20DOF/sphere.urdf')))
+        self._p.changeDynamics(self.spheres[i], -1, mass=0.0)
+        self._p.changeVisualShape(self.spheres[i], -1, rgbaColor=[1, 0, 0, 1])
 
     return r
 
