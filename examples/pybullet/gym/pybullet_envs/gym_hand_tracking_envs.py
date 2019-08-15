@@ -6,6 +6,7 @@ import pybullet_data
 from pybullet_envs.env_bases import MJCFBaseBulletEnv
 from pybullet_envs.scene_stadium import SinglePlayerStadiumScene
 from pybullet_envs.hand_trackers import HumanHand20DOFFixedBaseMSRAP05, HumanHand20DOFFixedBaseMSRAP05Play
+from pybullet_envs.hand_trackers import HumanHand20DOFFreedBaseMSRAP05, HumanHand20DOFFreedBaseMSRAP05Play
 
 
 class HandTrackerBulletEnv(MJCFBaseBulletEnv):
@@ -137,6 +138,82 @@ class HumanHand20DOFFixedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFixedBaseMSRAP05
 
     for j, d in enumerate(self.robot.kpts_names):
       self._p.resetBasePositionAndOrientation(self.spheres[j], self.robot.kpts[self.robot.frame][j], [0, 0, 0, 1])
+
+    return state, reward, done, info
+
+  def is_alive(self):
+    return True
+
+
+class HumanHand20DOFFreedBaseMSRAP05BulletEnv(HandTrackerBulletEnv):
+
+  def __init__(self, robot=HumanHand20DOFFreedBaseMSRAP05(), render=False):
+    HandTrackerBulletEnv.__init__(self, robot, render)
+
+  def post_step(self):
+    self.dist = self.calc_dist(self.robot.frame)
+
+  def calc_rewards(self):
+    r_dist = np.exp(-2000 * np.sum(self.dist ** 2))
+    return [1.0000 * r_dist]
+
+  def calc_error(self):
+    return np.mean(self.dist) * 1000
+
+  def is_alive(self):
+    return np.max(self.dist) < 0.05
+
+  def calc_dist(self, frame):
+    kpts = np.vstack([self.robot.parts[k].get_position() for k in self.robot.kpts_names])
+    return np.linalg.norm(kpts - self.robot.kpts[frame], axis=1)
+
+
+class HumanHand20DOFFreedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFreedBaseMSRAP05BulletEnv):
+
+  def __init__(self,
+               robot=HumanHand20DOFFreedBaseMSRAP05Play(),
+               truth=HumanHand20DOFFreedBaseMSRAP05Play(),
+               render=False):
+    HumanHand20DOFFreedBaseMSRAP05BulletEnv.__init__(self, robot, render)
+    self.truth = truth
+    self.spheres = []
+
+  def reset(self):
+    r = HumanHand20DOFFreedBaseMSRAP05BulletEnv.reset(self)
+
+    truth_loaded = self.truth.loaded
+    self.truth.np_random = self.np_random
+    self.truth.reset(self._p)
+
+    if not truth_loaded:
+      body_id = self.truth.robot_body.bodies[0]
+      for j in range(-1, self._p.getNumJoints(body_id)):
+        self._p.setCollisionFilterGroupMask(body_id, j, collisionFilterGroup=0, collisionFilterMask=0)
+        self._p.changeVisualShape(body_id, j, rgbaColor=[0.7, 0.7, 0.7, 0.4])
+      body_id = self.robot.robot_body.bodies[0]
+      for j in range(-1, self._p.getNumJoints(body_id)):
+        self._p.changeVisualShape(body_id, j, rgbaColor=[0.7, 0.7, 0.7, 0.7])
+
+    if not self.spheres:
+      for i in range(34):
+        self.spheres.append(
+            self._p.loadURDF(os.path.join(pybullet_data.getDataPath(), 'HumanHand20DOF/sphere.urdf')))
+        self._p.changeDynamics(self.spheres[i], -1, mass=0.0)
+        if i < 17:
+          self._p.changeVisualShape(self.spheres[i], -1, rgbaColor=[1, 0, 0, 1])
+        else:
+          self._p.changeVisualShape(self.spheres[i], -1, rgbaColor=[0, 1, 0, 1])
+
+    return r
+
+  def step(self, a):
+    state, reward, done, info = HumanHand20DOFFreedBaseMSRAP05BulletEnv.step(self, a)
+
+    self.truth.reset_joint_position(self.robot.qpos[self.robot.frame])
+
+    for j, d in enumerate(self.robot.kpts_names):
+      self._p.resetBasePositionAndOrientation(self.spheres[j], self.robot.kpts[self.robot.frame][j], [0, 0, 0, 1])
+      self._p.resetBasePositionAndOrientation(self.spheres[j + 17], self.robot.parts[d].get_position(), [0, 0, 0, 1])
 
     return state, reward, done, info
 

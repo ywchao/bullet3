@@ -223,6 +223,18 @@ register(
     max_episode_steps=1000,
 )
 
+register(
+    id='HumanHand20DOFFreedBaseMSRAP05BulletEnv-v0',
+    entry_point='pybullet_envs.gym_hand_tracking_envs:HumanHand20DOFFreedBaseMSRAP05BulletEnv',
+    max_episode_steps=1000,
+)
+
+register(
+    id='HumanHand20DOFFreedBaseMSRAP05BulletEnvPlay-v0',
+    entry_point='pybullet_envs.gym_hand_tracking_envs:HumanHand20DOFFreedBaseMSRAP05BulletEnvPlay',
+    max_episode_steps=1000,
+)
+
 
 def getList():
   btenvs = ['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.find('Bullet') >= 0]
