@@ -102,7 +102,7 @@ class HumanHand20DOFFixedBaseMSRAP05Play(HumanHand20DOFFixedBaseMSRAP05):
 class HumanHand20DOFFreedBase(HumanHand20DOF):
 
   def __init__(self):
-    HumanHand20DOF.__init__(self, 'HumanHand20DOF/HumanHand20DOFBaseJoint.urdf', 'world', action_dim=27, obs_dim=102)
+    HumanHand20DOF.__init__(self, 'HumanHand20DOF/HumanHand20DOFBaseJoint.urdf', 'world', action_dim=26, obs_dim=102)
 
   def robot_specific_reset(self, bullet_client):
     HumanHand20DOF.robot_specific_reset(self, bullet_client)
@@ -147,8 +147,7 @@ class HumanHand20DOFFreedBase(HumanHand20DOF):
     curr_opos, curr_ovel, _, _ = self._p.getJointStateMultiDof(
         self.ordered_joints[3].bodies[self.ordered_joints[3].bodyIndex],
         self.ordered_joints[3].jointIndex)
-    next_oacc = a[4:7] * a[3]
-    next_ovel = curr_ovel + next_oacc * 10000 * 0.0165
+    next_ovel = curr_ovel + a[3:6] * 10000 * 0.0165
     axis, angle = next_ovel / np.linalg.norm(next_ovel), np.linalg.norm(next_ovel) * 0.0165
     _, next_opos = self._p.multiplyTransforms(
         [0, 0, 0], curr_opos, [0, 0, 0], self._p.getQuaternionFromAxisAngle(axis, angle))
@@ -160,7 +159,7 @@ class HumanHand20DOFFreedBase(HumanHand20DOF):
     # Joint positions.
     curr_jpos = np.array([j.get_position() for j in self.ordered_joints[4:24]], dtype=np.float32)
     curr_jvel = np.array([j.get_velocity() for j in self.ordered_joints[4:24]], dtype=np.float32)
-    next_jvel = curr_jvel + a[7:27] * 500 * 0.0165
+    next_jvel = curr_jvel + a[6:26] * 500 * 0.0165
     next_jpos = curr_jpos + next_jvel * 0.0165
     for n, j in enumerate(self.ordered_joints[4:24]):
       j.set_position(next_jpos[n])
