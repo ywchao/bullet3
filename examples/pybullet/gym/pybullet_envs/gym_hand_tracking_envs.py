@@ -89,7 +89,7 @@ class HumanHand20DOFFixedBaseMSRAP05BulletEnv(HandTrackerBulletEnv):
     return [0.8333 * r_prog, 0.1667 * r_jpos]
 
   def calc_error(self):
-    return np.mean(self.dist) * 1000
+    return {'pos': np.mean(self.dist) * 1000}
 
   def is_alive(self):
     return True
@@ -150,22 +150,34 @@ class HumanHand20DOFFreedBaseMSRAP05BulletEnv(HandTrackerBulletEnv):
   def __init__(self, robot=HumanHand20DOFFreedBaseMSRAP05(), render=False):
     HandTrackerBulletEnv.__init__(self, robot, render)
 
+  def reset(self):
+    self.prev_kpos = None
+    return HandTrackerBulletEnv.reset(self)
+
+  def pre_step(self):
+    if self.prev_kpos is None:
+      self.prev_kpos = self.robot.kpts[self.robot.frame]
+
   def post_step(self):
-    self.dist = self.calc_dist(self.robot.frame)
+    curr_kpos = np.vstack([self.robot.parts[k].get_position() for k in self.robot.kpts_names])
+    real_kpos = self.robot.kpts[self.robot.frame]
+    self.dist_kpos = np.linalg.norm(curr_kpos - real_kpos, axis=1)
+
+    curr_kvel = curr_kpos - self.prev_kpos
+    real_kvel = self.robot.kpts[self.robot.frame] - self.robot.kpts[self.robot.frame - 1]
+    self.dist_kvel = np.linalg.norm(curr_kvel - real_kvel, axis=1)
+
+    self.prev_kpos = curr_kpos
 
   def calc_rewards(self):
-    r_dist = np.exp(-2000 * np.sum(self.dist ** 2))
+    r_dist = np.exp(-(2000 * np.sum(self.dist_kpos ** 2) + 2000 * np.sum(self.dist_kvel ** 2)))
     return [1.0000 * r_dist]
 
   def calc_error(self):
-    return np.mean(self.dist) * 1000
+    return {'pos': np.mean(self.dist_kpos) * 1000, 'vel': np.mean(self.dist_kvel) * 1000}
 
   def is_alive(self):
-    return np.max(self.dist) < 0.05
-
-  def calc_dist(self, frame):
-    kpts = np.vstack([self.robot.parts[k].get_position() for k in self.robot.kpts_names])
-    return np.linalg.norm(kpts - self.robot.kpts[frame], axis=1)
+    return np.max(self.dist_kpos) < 0.05
 
 
 class HumanHand20DOFFreedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFreedBaseMSRAP05BulletEnv):
