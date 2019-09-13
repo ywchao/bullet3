@@ -211,3 +211,30 @@ class HumanHand20DOFFreedBaseMSRAP05Play(HumanHand20DOFFreedBaseMSRAP05):
 
   def reset_frame(self):
     return 0
+
+
+class HumanHand20DOFMSRA(HumanHand20DOFFreedBase):
+
+  def __init__(self):
+    HumanHand20DOFFreedBase.__init__(self)
+    data = np.load(os.path.join(pybullet_data.getDataPath(), 'HumanHand20DOF/motions/msra.npz'), allow_pickle=True)
+    self.qpos_all = data['qpos']
+    self.kpts_all = data['kpts']
+
+  def reset_frame(self):
+    s = self.np_random.randint(len(self.qpos_all))
+    self.qpos = self.qpos_all[s]
+    self.kpts = self.kpts_all[s]
+    return self.np_random.randint(len(self.qpos) - 100)
+
+
+class HumanHand20DOFMSRAPlay(HumanHand20DOFMSRA):
+
+  def __init__(self):
+    HumanHand20DOFMSRA.__init__(self)
+    self.s = 0
+
+  def reset_frame(self):
+    self.qpos = self.qpos_all[self.s]
+    self.kpts = self.kpts_all[self.s]
+    return 0

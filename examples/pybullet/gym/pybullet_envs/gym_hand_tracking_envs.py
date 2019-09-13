@@ -7,6 +7,7 @@ from pybullet_envs.env_bases import MJCFBaseBulletEnv
 from pybullet_envs.scene_stadium import SinglePlayerStadiumScene
 from pybullet_envs.hand_trackers import HumanHand20DOFFixedBaseMSRAP05, HumanHand20DOFFixedBaseMSRAP05Play
 from pybullet_envs.hand_trackers import HumanHand20DOFFreedBaseMSRAP05, HumanHand20DOFFreedBaseMSRAP05Play
+from pybullet_envs.hand_trackers import HumanHand20DOFMSRA, HumanHand20DOFMSRAPlay
 
 
 class HandTrackerBulletEnv(MJCFBaseBulletEnv):
@@ -255,3 +256,23 @@ class HumanHand20DOFFreedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFreedBaseBulletE
                                                   robot=HumanHand20DOFFreedBaseMSRAP05Play(),
                                                   truth=HumanHand20DOFFreedBaseMSRAP05Play(),
                                                   render=False)
+
+
+class HumanHand20DOFMSRABulletEnv(HumanHand20DOFFreedBaseBulletEnv):
+
+  def __init__(self):
+    HumanHand20DOFFreedBaseBulletEnv.__init__(self, robot=HumanHand20DOFMSRA(), render=False)
+
+
+class HumanHand20DOFMSRABulletEnvPlay(HumanHand20DOFFreedBaseBulletEnvPlay):
+
+  def __init__(self):
+    HumanHand20DOFFreedBaseBulletEnvPlay.__init__(self,
+                                                  robot=HumanHand20DOFMSRAPlay(),
+                                                  truth=HumanHand20DOFMSRAPlay(),
+                                                  render=False)
+    self.num_seq = len(self.robot.qpos_all)
+
+  def set_sequence(self, s):
+    self.robot.s = s
+    self.truth.s = s
