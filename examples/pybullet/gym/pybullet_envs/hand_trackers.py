@@ -51,6 +51,7 @@ class HumanHand20DOFFixedBase(HumanHand20DOF):
 
   def __init__(self):
     HumanHand20DOF.__init__(self, 'HumanHand20DOF/HumanHand20DOF.urdf', 'base_link', action_dim=20, obs_dim=60)
+    self.kpts_names = ('index3', 'mid3', 'ring3', 'pinky3', 'thumb3')
 
   def robot_specific_reset(self, bullet_client):
     HumanHand20DOF.robot_specific_reset(self, bullet_client)
@@ -87,7 +88,6 @@ class HumanHand20DOFFixedBaseMSRAP05(HumanHand20DOFFixedBase):
     data = np.load(os.path.join(pybullet_data.getDataPath(), 'HumanHand20DOF/motions/msra_P0_5_fixed_base.npz'))
     self.qpos = data['qpos']
     self.kpts = data['kpts']
-    self.kpts_names = ('index3', 'mid3', 'ring3', 'pinky3', 'thumb3')
 
   def reset_frame(self):
     return self.np_random.randint(len(self.qpos) - 100)
@@ -103,6 +103,8 @@ class HumanHand20DOFFreedBase(HumanHand20DOF):
 
   def __init__(self):
     HumanHand20DOF.__init__(self, 'HumanHand20DOF/HumanHand20DOFBaseJoint.urdf', 'world', action_dim=26, obs_dim=102)
+    self.kpts_names = ('base_link', 'palm', 'index1', 'index2', 'index3', 'mid1', 'mid2', 'mid3', 'ring1', 'ring2',
+                       'ring3', 'pinky1', 'pinky2', 'pinky3', 'thumb1', 'thumb2', 'thumb3')
 
   def robot_specific_reset(self, bullet_client):
     HumanHand20DOF.robot_specific_reset(self, bullet_client)
@@ -200,8 +202,6 @@ class HumanHand20DOFFreedBaseMSRAP05(HumanHand20DOFFreedBase):
     data = np.load(os.path.join(pybullet_data.getDataPath(), 'HumanHand20DOF/motions/msra_P0_5_freed_base.npz'))
     self.qpos = data['qpos']
     self.kpts = data['kpts']
-    self.kpts_names = ('base_link', 'palm', 'index1', 'index2', 'index3', 'mid1', 'mid2', 'mid3', 'ring1', 'ring2',
-                       'ring3', 'pinky1', 'pinky2', 'pinky3', 'thumb1', 'thumb2', 'thumb3')
 
   def reset_frame(self):
     return self.np_random.randint(len(self.qpos) - 100)

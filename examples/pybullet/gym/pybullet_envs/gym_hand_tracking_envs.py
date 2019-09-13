@@ -65,9 +65,9 @@ class HandTrackerBulletEnv(MJCFBaseBulletEnv):
     raise NotImplementedError
 
 
-class HumanHand20DOFFixedBaseMSRAP05BulletEnv(HandTrackerBulletEnv):
+class HumanHand20DOFFixedBaseBulletEnv(HandTrackerBulletEnv):
 
-  def __init__(self, robot=HumanHand20DOFFixedBaseMSRAP05(), render=False):
+  def __init__(self, robot, render=False):
     HandTrackerBulletEnv.__init__(self, robot, render)
 
   def pre_step(self):
@@ -99,18 +99,15 @@ class HumanHand20DOFFixedBaseMSRAP05BulletEnv(HandTrackerBulletEnv):
     return np.linalg.norm(kpts - self.robot.kpts[frame], axis=1)
 
 
-class HumanHand20DOFFixedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFixedBaseMSRAP05BulletEnv):
+class HumanHand20DOFFixedBaseBulletEnvPlay(HumanHand20DOFFixedBaseBulletEnv):
 
-  def __init__(self,
-               robot=HumanHand20DOFFixedBaseMSRAP05Play(),
-               truth=HumanHand20DOFFixedBaseMSRAP05Play(),
-               render=False):
-    HumanHand20DOFFixedBaseMSRAP05BulletEnv.__init__(self, robot, render)
+  def __init__(self, robot, truth, render=False):
+    HumanHand20DOFFixedBaseBulletEnv.__init__(self, robot, render)
     self.truth = truth
     self.spheres = []
 
   def reset(self):
-    r = HumanHand20DOFFixedBaseMSRAP05BulletEnv.reset(self)
+    r = HumanHand20DOFFixedBaseBulletEnv.reset(self)
 
     truth_loaded = self.truth.loaded
     self.truth.np_random = self.np_random
@@ -132,7 +129,7 @@ class HumanHand20DOFFixedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFixedBaseMSRAP05
     return r
 
   def step(self, a):
-    state, reward, done, info = HumanHand20DOFFixedBaseMSRAP05BulletEnv.step(self, a)
+    state, reward, done, info = HumanHand20DOFFixedBaseBulletEnv.step(self, a)
 
     self.truth.reset_joint_position(self.robot.qpos[self.robot.frame])
 
@@ -145,9 +142,24 @@ class HumanHand20DOFFixedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFixedBaseMSRAP05
     return True
 
 
-class HumanHand20DOFFreedBaseMSRAP05BulletEnv(HandTrackerBulletEnv):
+class HumanHand20DOFFixedBaseMSRAP05BulletEnv(HumanHand20DOFFixedBaseBulletEnv):
 
-  def __init__(self, robot=HumanHand20DOFFreedBaseMSRAP05(), render=False):
+  def __init__(self):
+    HumanHand20DOFFixedBaseBulletEnv.__init__(self, robot=HumanHand20DOFFixedBaseMSRAP05(), render=False)
+
+
+class HumanHand20DOFFixedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFixedBaseBulletEnvPlay):
+
+  def __init__(self):
+    HumanHand20DOFFixedBaseBulletEnvPlay.__init__(self,
+                                                  robot=HumanHand20DOFFixedBaseMSRAP05Play(),
+                                                  truth=HumanHand20DOFFixedBaseMSRAP05Play(),
+                                                  render=False)
+
+
+class HumanHand20DOFFreedBaseBulletEnv(HandTrackerBulletEnv):
+
+  def __init__(self, robot, render=False):
     HandTrackerBulletEnv.__init__(self, robot, render)
 
   def reset(self):
@@ -180,18 +192,15 @@ class HumanHand20DOFFreedBaseMSRAP05BulletEnv(HandTrackerBulletEnv):
     return np.max(self.dist_kpos) < 0.05
 
 
-class HumanHand20DOFFreedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFreedBaseMSRAP05BulletEnv):
+class HumanHand20DOFFreedBaseBulletEnvPlay(HumanHand20DOFFreedBaseBulletEnv):
 
-  def __init__(self,
-               robot=HumanHand20DOFFreedBaseMSRAP05Play(),
-               truth=HumanHand20DOFFreedBaseMSRAP05Play(),
-               render=False):
-    HumanHand20DOFFreedBaseMSRAP05BulletEnv.__init__(self, robot, render)
+  def __init__(self, robot, truth, render=False):
+    HumanHand20DOFFreedBaseBulletEnv.__init__(self, robot, render)
     self.truth = truth
     self.spheres = []
 
   def reset(self):
-    r = HumanHand20DOFFreedBaseMSRAP05BulletEnv.reset(self)
+    r = HumanHand20DOFFreedBaseBulletEnv.reset(self)
 
     truth_loaded = self.truth.loaded
     self.truth.np_random = self.np_random
@@ -219,7 +228,7 @@ class HumanHand20DOFFreedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFreedBaseMSRAP05
     return r
 
   def step(self, a):
-    state, reward, done, info = HumanHand20DOFFreedBaseMSRAP05BulletEnv.step(self, a)
+    state, reward, done, info = HumanHand20DOFFreedBaseBulletEnv.step(self, a)
 
     self.truth.reset_joint_position(self.robot.qpos[self.robot.frame])
 
@@ -231,3 +240,18 @@ class HumanHand20DOFFreedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFreedBaseMSRAP05
 
   def is_alive(self):
     return True
+
+
+class HumanHand20DOFFreedBaseMSRAP05BulletEnv(HumanHand20DOFFreedBaseBulletEnv):
+
+  def __init__(self):
+    HandTrackerBulletEnv.__init__(self, robot=HumanHand20DOFFreedBaseMSRAP05(), render=False)
+
+
+class HumanHand20DOFFreedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFreedBaseBulletEnvPlay):
+
+  def __init__(self):
+    HumanHand20DOFFreedBaseBulletEnvPlay.__init__(self,
+                                                  robot=HumanHand20DOFFreedBaseMSRAP05Play(),
+                                                  truth=HumanHand20DOFFreedBaseMSRAP05Play(),
+                                                  render=False)
