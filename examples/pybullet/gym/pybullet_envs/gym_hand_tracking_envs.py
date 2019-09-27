@@ -260,16 +260,16 @@ class HumanHand20DOFFreedBaseMSRAP05BulletEnvPlay(HumanHand20DOFFreedBaseBulletE
 
 class HumanHand20DOFMSRABulletEnv(HumanHand20DOFFreedBaseBulletEnv):
 
-  def __init__(self):
-    HumanHand20DOFFreedBaseBulletEnv.__init__(self, robot=HumanHand20DOFMSRA(), render=False)
+  def __init__(self, split=None):
+    HumanHand20DOFFreedBaseBulletEnv.__init__(self, robot=HumanHand20DOFMSRA(split), render=False)
 
 
 class HumanHand20DOFMSRABulletEnvPlay(HumanHand20DOFFreedBaseBulletEnvPlay):
 
-  def __init__(self):
+  def __init__(self, split=None):
     HumanHand20DOFFreedBaseBulletEnvPlay.__init__(self,
-                                                  robot=HumanHand20DOFMSRAPlay(),
-                                                  truth=HumanHand20DOFMSRAPlay(),
+                                                  robot=HumanHand20DOFMSRAPlay(split),
+                                                  truth=HumanHand20DOFMSRAPlay(split),
                                                   render=False)
     self.num_seq = len(self.robot.qpos_all)
 

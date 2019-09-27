@@ -247,6 +247,28 @@ register(
     max_episode_steps=1000,
 )
 
+for i in range(9):
+  register(
+      id='HumanHand20DOFMSRATrainP{:d}BulletEnv-v0'.format(i),
+      entry_point='pybullet_envs.gym_hand_tracking_envs:HumanHand20DOFMSRABulletEnv',
+      max_episode_steps=1000,
+      kwargs={ "split": "train-{:d}".format(i) },
+  )
+
+  register(
+      id='HumanHand20DOFMSRATrainP{:d}BulletEnvPlay-v0'.format(i),
+      entry_point='pybullet_envs.gym_hand_tracking_envs:HumanHand20DOFMSRABulletEnvPlay',
+      max_episode_steps=1000,
+      kwargs={ "split": "train-{:d}".format(i) },
+  )
+
+  register(
+      id='HumanHand20DOFMSRATestP{:d}BulletEnvPlay-v0'.format(i),
+      entry_point='pybullet_envs.gym_hand_tracking_envs:HumanHand20DOFMSRABulletEnvPlay',
+      max_episode_steps=1000,
+      kwargs={ "split": "test-{:d}".format(i) },
+  )
+
 
 def getList():
   btenvs = ['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.find('Bullet') >= 0]

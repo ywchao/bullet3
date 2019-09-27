@@ -215,11 +215,19 @@ class HumanHand20DOFFreedBaseMSRAP05Play(HumanHand20DOFFreedBaseMSRAP05):
 
 class HumanHand20DOFMSRA(HumanHand20DOFFreedBase):
 
-  def __init__(self):
+  def __init__(self, split=None):
     HumanHand20DOFFreedBase.__init__(self)
     data = np.load(os.path.join(pybullet_data.getDataPath(), 'HumanHand20DOF/motions/msra.npz'), allow_pickle=True)
     self.qpos_all = data['qpos']
     self.kpts_all = data['kpts']
+    if split is not None:
+      split, subject = split.split('-')
+      if split == 'train':
+        ind = [s[:2] != 'P' + subject for s in data['seq']]
+      if split == 'test':
+        ind = [s[:2] == 'P' + subject for s in data['seq']]
+      self.qpos_all = self.qpos_all[ind]
+      self.kpts_all = self.kpts_all[ind]
 
   def reset_frame(self):
     s = self.np_random.randint(len(self.qpos_all))
@@ -230,8 +238,8 @@ class HumanHand20DOFMSRA(HumanHand20DOFFreedBase):
 
 class HumanHand20DOFMSRAPlay(HumanHand20DOFMSRA):
 
-  def __init__(self):
-    HumanHand20DOFMSRA.__init__(self)
+  def __init__(self, split=None):
+    HumanHand20DOFMSRA.__init__(self, split)
     self.s = 0
 
   def reset_frame(self):
